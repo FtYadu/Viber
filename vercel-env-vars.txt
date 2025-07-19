@@ -1,0 +1,24 @@
+# Copy these environment variables to your Vercel project settings
+
+# Database Configuration
+DATABASE_URL=postgresql://postgres.pyyvlpobbbiegikppqlz:Yadu@1998@aws-0-eu-north-1.pooler.supabase.com:6543/postgres
+
+# Supabase Configuration  
+SUPABASE_URL=https://pyyvlpobbbiegikppqlz.supabase.co
+SUPABASE_JWT_SECRET=WdI2HheE2Sd8QvGc146zehrDF/zAizy9RytFER6YNH2+fo57J4arqyop0nLzzAnW1YDSgB7T/ULIS9qrjsRGZQ==
+
+# Note: Replace [REDACTED] values with your actual Supabase keys
+SUPABASE_ANON_KEY=[Replace with your Anon Public Key]
+SUPABASE_SERVICE_ROLE_KEY=[Replace with your Service Role Secret]
+
+# Authentication - Update these after deployment
+NEXTAUTH_URL=https://your-vercel-domain.vercel.app
+NEXTAUTH_SECRET=[Generate with: openssl rand -base64 32]
+
+# Google OAuth - Set up after creating Google Cloud project
+GOOGLE_CLIENT_ID=[Your Google OAuth Client ID]
+GOOGLE_CLIENT_SECRET=[Your Google OAuth Client Secret]
+
+# App Configuration - Update with your domain
+NEXT_PUBLIC_APP_URL=https://your-vercel-domain.vercel.app
+NEXT_PUBLIC_ADMIN_EMAIL=[Your admin email address]
