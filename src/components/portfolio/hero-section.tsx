@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ArrowDown, Download, Mail } from 'lucide-react';
+import Link from 'next/link';
 
 interface HeroSectionProps {
   name?: string;
@@ -130,6 +131,17 @@ export function HeroSection({
               {ctaText}
               <ArrowDown className="ml-2 h-5 w-5" />
             </Button>
+            
+            <Link href="/portfolio">
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-primary/50 text-primary bg-white/10 hover:bg-white/20 hover:border-primary/70 px-8 py-3 text-lg font-medium backdrop-blur-sm shadow-lg"
+              >
+                🎨 Visual Gallery
+                <span className="ml-2 text-sm bg-primary/20 px-2 py-0.5 rounded-full">2000+</span>
+              </Button>
+            </Link>
             
             <Button
               variant="outline"
