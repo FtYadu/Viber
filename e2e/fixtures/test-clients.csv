@@ -1,0 +1,5 @@
+name,email,company,phone,address,status
+John Doe,john@example.com,Acme Corp,+1-555-0101,123 Main St,ACTIVE
+Jane Smith,jane@example.com,Tech Solutions,+1-555-0102,456 Oak Ave,ACTIVE
+Bob Johnson,bob@example.com,Design Studio,+1-555-0103,789 Pine Rd,PROSPECT
+Alice Brown,alice@example.com,Marketing Inc,+1-555-0104,321 Elm St,INACTIVE

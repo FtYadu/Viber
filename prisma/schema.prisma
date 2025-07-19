@@ -1,0 +1,402 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(CLIENT)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  clientProfile Client?
+  appSettings   AppSetting[]
+}
+
+enum UserRole {
+  ADMIN
+  CLIENT
+}
+
+// NextAuth models
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.Text
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, token])
+}
+
+// Client model
+model Client {
+  id        String       @id @default(cuid())
+  name      String
+  email     String
+  company   String?
+  phone     String?
+  address   String?
+  status    ClientStatus @default(PROSPECT)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  userId    String?      @unique
+
+  // Relations
+  user     User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  projects Project[]
+  invoices Invoice[]
+}
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+  PROSPECT
+}
+
+// Project model
+model Project {
+  id          String        @id @default(cuid())
+  title       String
+  description String
+  status      ProjectStatus @default(PLANNING)
+  priority    Priority      @default(MEDIUM)
+  startDate   DateTime
+  deadline    DateTime?
+  budget      Float?
+  tags        String[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  clientId    String
+
+  // Relations
+  client Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  tasks  Task[]
+  files  ProjectFile[]
+}
+
+enum ProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+  ON_HOLD
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// Task model
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  projectId   String
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+// Project file model
+model ProjectFile {
+  id          String   @id @default(cuid())
+  name        String
+  url         String
+  type        String
+  size        Int
+  driveFileId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  projectId   String
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+// Invoice model
+model Invoice {
+  id            String        @id @default(cuid())
+  number        String        @unique
+  invoiceNumber String        @unique
+  amount        Float
+  currency      String        @default("USD")
+  status        InvoiceStatus @default(DRAFT)
+  issueDate     DateTime
+  dueDate       DateTime
+  paidDate      DateTime?
+  notes         String?
+  stripeUrl     String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  clientId      String
+
+  // Relations
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  items  InvoiceItem[]
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+// Invoice item model
+model InvoiceItem {
+  id          String   @id @default(cuid())
+  description String
+  quantity    Int
+  unitPrice   Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  invoiceId   String
+
+  // Relations
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+// Portfolio item model
+model PortfolioItem {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    String
+  tags        String[]
+  images      String[]
+  liveUrl     String?
+  githubUrl   String?
+  featured    Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// CV section model
+model CVSection {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// DNS record model
+model DNSRecord {
+  id          String       @id @default(cuid())
+  domain      String
+  type        DNSRecordType
+  name        String
+  content     String
+  ttl         Int
+  priority    Int?
+  status      DNSStatus    @default(PENDING)
+  cloudflareId String?
+  lastChecked DateTime     @default(now())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+enum DNSRecordType {
+  A
+  AAAA
+  CNAME
+  MX
+  TXT
+  NS
+}
+
+enum DNSType {
+  A
+  AAAA
+  CNAME
+  MX
+  TXT
+  NS
+}
+
+enum Role {
+  ADMIN
+  CLIENT
+}
+
+enum DNSStatus {
+  ACTIVE
+  PENDING
+  ERROR
+}
+
+// Email template model
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  subject   String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Workflow configuration model
+model WorkflowConfig {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  webhookUrl     String
+  type           String
+  workflowId     String?  @unique
+  enabled        Boolean  @default(true)
+  executionCount Int      @default(0)
+  lastExecuted   DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  executions          WorkflowExecution[]
+  webhookRegistrations WebhookRegistration[]
+}
+
+// Workflow execution model
+model WorkflowExecution {
+  id              String         @id @default(cuid())
+  status          String         @default("pending")
+  payload         String
+  result          String?
+  error           String?
+  executionId     String?
+  createdAt       DateTime       @default(now())
+  executedAt      DateTime       @default(now())
+  completedAt     DateTime?
+  workflowId      String?
+  workflowConfigId String
+
+  // Relations
+  workflowConfig WorkflowConfig @relation(fields: [workflowConfigId], references: [id], onDelete: Cascade)
+}
+
+enum ExecutionStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+// Webhook registration model
+model WebhookRegistration {
+  id          String   @id @default(cuid())
+  type        String
+  endpoint    String
+  secret      String
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  workflowConfigId String
+
+  // Relations
+  workflowConfig WorkflowConfig @relation(fields: [workflowConfigId], references: [id], onDelete: Cascade)
+}
+
+// Chat session model
+model ChatSession {
+  id        String   @id @default(cuid())
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  messages ChatMessage[]
+}
+
+// Chat message model
+model ChatMessage {
+  id        String   @id @default(cuid())
+  role      String   // "user", "assistant", "system"
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  sessionId String
+
+  // Relations
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+// App settings model for environment variables
+model AppSetting {
+  id              String   @id @default(cuid())
+  userId          String
+  settingKey      String
+  settingValue    String   @db.Text
+  isEncrypted     Boolean  @default(false)
+  featureCategory String?
+  isRequired      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, settingKey])
+}
